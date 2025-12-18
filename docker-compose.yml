@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: hh_pg
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: hh_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    command: >
+      sh -c "ollama pull gpt-oss:20b && ollama serve"
+
+  bot:
+    build: .
+    container_name: hh_bot
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - ollama
+    command: python -m app.main
+
+volumes:
+  pgdata:
+  ollama:
